@@ -10,35 +10,65 @@ import {
     errorHandler,
     notFound,
 } from './middlewares/handlerError.middleware.js';
+import connectDB, { client, getDatabaseInstance } from './config/db.js';
 const port = process.env.PORT || 4000;
-const app = express();
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
-app.use(cors(corsOptions));
-app.use(morgan('combined'));
-app.use(
-    helmet.contentSecurityPolicy({
-        directives: {
-            defaultSrc: ["'self'"],
-            fontSrc: ["'self'"],
-            imgSrc: ["'self'"],
-            scriptSrc: ["'self'"],
-            upgradeInsecureRequests: [],
-            styleSrc: ["'self'"],
-            frameSrc: ["'self'"],
-        },
-        reportOnly: true, // Set to 'true' to enable report-only mode
-    }),
-);
 
-app.get('/', (req, res) => {
-    return res.status(200).json({
-        message: 'Welcome to the server',
+const startServer = () => {
+    const app = express();
+    app.use(bodyParser.json({ limit: '50mb' }));
+    app.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
+    app.use(cors(corsOptions));
+    app.use(morgan('combined'));
+    app.use(
+        helmet.contentSecurityPolicy({
+            directives: {
+                defaultSrc: ["'self'"],
+                fontSrc: ["'self'"],
+                imgSrc: ["'self'"],
+                scriptSrc: ["'self'"],
+                upgradeInsecureRequests: [],
+                styleSrc: ["'self'"],
+                frameSrc: ["'self'"],
+            },
+            reportOnly: true, // Set to 'true' to enable report-only mode
+        }),
+    );
+    app.get('/', (req, res) => {
+        // console.log(getDatabaseInstance());
+        return res.status(200).json({
+            message: 'Welcome to the server',
+        });
     });
-});
-routes(app);
-app.use(notFound);
-app.use(errorHandler);
-app.listen(port, () => {
-    console.log(`Server listening on http://localhost:${port}`);
-});
+    routes(app);
+    app.use(notFound);
+    app.use(errorHandler);
+    app.listen(port, () => {
+        console.log(`Server listening on http://localhost:${port}`);
+    }).on('error', (e) => {
+        console.log(e);
+        process.exit(1);
+    });
+};
+
+// connectDB()
+//     .then(() => console.log('Connected MongoDB successfully'))
+//     .then(() => startServer())
+//     .catch(async (err) => {
+//         console.log('Connected MongoDB failed.');
+//         console.log(err);
+//         await client.close();
+//         process.exit(1);
+//     });
+
+(async () => {
+    try {
+        await connectDB();
+        console.log('Connected MongoDB successfully');
+        startServer();
+    } catch (error) {
+        console.log('Connected MongoDB failed.');
+        console.log(error);
+        await client.close();
+        process.exit(1);
+    }
+})();
