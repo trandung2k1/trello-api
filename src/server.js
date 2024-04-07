@@ -44,9 +44,6 @@ const startServer = () => {
     app.use(errorHandler);
     app.listen(port, () => {
         console.log(`Server listening on http://localhost:${port}`);
-    }).on('error', (e) => {
-        console.log(e);
-        process.exit(1);
     });
 };
 
@@ -60,6 +57,13 @@ const startServer = () => {
 //         process.exit(1);
 //     });
 
+process.on('SIGINT', async () => {
+    console.log('You are performing a server shutdown!');
+    console.log('Close connection MongoDB shutdown!');
+    await client.close();
+    process.exit(0);
+});
+
 (async () => {
     try {
         await connectDB();
@@ -68,7 +72,6 @@ const startServer = () => {
     } catch (error) {
         console.log('Connected MongoDB failed.');
         console.log(error);
-        await client.close();
         process.exit(1);
     }
 })();

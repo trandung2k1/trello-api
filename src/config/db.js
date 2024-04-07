@@ -26,4 +26,10 @@ export const getDatabaseInstance = () => {
     if (!databaseInstance) throw new Error('Must connect to database firts!');
     return databaseInstance;
 };
+export const closeDB = async () => {
+    console.log('Close MongoDB');
+    await client.close();
+    databaseInstance = null;
+};
+
 export default connectDB;
